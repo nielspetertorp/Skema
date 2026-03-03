@@ -387,8 +387,8 @@
   </div>
 
 <script>
-  // Din Apps Script URL
-  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2NWfSDdarj0YVp3y5S6tsAzlU07Sj7iV7nF6NnN00lNXBfC5Mq6-1c14i8taWHZ9L/exec";
+  const APPS_SCRIPT_URL =
+    "https://script.google.com/macros/s/AKfycbz2NWfSDdarj0YVp3y5S6tsAzlU07Sj7iV7nF6NnN00lNXBfC5Mq6-1c14i8taWHZ9L/exec";
 
   const form = document.getElementById("survey");
   const status = document.getElementById("status");
@@ -405,24 +405,8 @@
   const totalSteps = steps.length;
   let currentStep = 1;
 
+  // Vigtigt: form skal poste til Apps Script og blive på siden (via iframe target)
   form.action = APPS_SCRIPT_URL;
-
-  // Vis status fra redirect (hvis du har Apps Script redirect tilbage til ?status=ok/err)
-  (function showStatusFromUrl() {
-    const url = new URL(window.location.href);
-    const st = url.searchParams.get("status");
-    if (!st) return;
-
-    if (st === "ok") {
-      status.innerHTML = `<div class="ok">Tak! Din besvarelse er sendt. Du kan nu lukke siden — eller udfylde for et barn mere.</div>`;
-      form.reset();
-    } else {
-      const msg = url.searchParams.get("msg") || "Ukendt fejl";
-      status.innerHTML = `<div class="err">Noget gik galt: ${escapeHtml(msg)}</div>`;
-    }
-
-    window.history.replaceState({}, "", url.origin + url.pathname);
-  })();
 
   function render() {
     steps.forEach(s => s.classList.add("hidden"));
@@ -440,12 +424,10 @@
 
     backBtn.disabled = currentStep === 1;
 
-    // sidste step: vis submit i stedet for next
     const isLast = currentStep === totalSteps;
     nextBtn.classList.toggle("hidden", isLast);
     submitBtn.classList.toggle("hidden", !isLast);
 
-    // Scroll top for overskuelighed
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -453,14 +435,13 @@
     const active = steps.find(s => Number(s.dataset.step) === currentStep);
     if (!active) return true;
 
-    // checkValidity virker pr. element (inkl. required radio/select/textarea)
     const inputs = Array.from(active.querySelectorAll("input, select, textarea"));
     for (const el of inputs) {
-      // skip disabled/hidden inputs (honeypot ligger udenfor step)
       if (el.disabled) continue;
+
+      // Hidden step elements er allerede skjult, så de valideres ikke her
       if (!el.checkValidity()) {
         el.reportValidity();
-        // scroll til feltet
         el.scrollIntoView({ behavior: "smooth", block: "center" });
         return false;
       }
@@ -481,20 +462,54 @@
     render();
   });
 
+  // Når brugeren sender: valider sidste step og disable knappen
   form.addEventListener("submit", (e) => {
-    // Valider sidste step (og i praksis hele formen)
     status.innerHTML = "";
-    const ok = validateCurrentStep();
-    if (!ok) {
+
+    if (!validateCurrentStep()) {
       e.preventDefault();
       return;
     }
-    // UX: disable knap så man ikke spammer
+
     submitBtn.disabled = true;
     submitBtn.textContent = "Sender…";
   });
 
-  // Start rendering
+  // ✅ Lyt efter postMessage fra Apps Script (iframe)
+  window.addEventListener("message", (event) => {
+    // Stram gerne origin senere; i første omgang accepterer vi hvis payload ligner vores
+    const data = event.data || {};
+    if (typeof data !== "object" || data.ok === undefined) return;
+
+    // Re-enable submit uanset hvad
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Send besvarelse";
+
+    if (data.ok) {
+      status.innerHTML = `
+        <div class="ok">
+          Tak! Din besvarelse er sendt.<br><br>
+          <button id="againBtn" type="button" class="primary">Besvar for et barn mere</button>
+        </div>
+      `;
+
+      form.reset();
+      currentStep = 1;
+      render();
+
+      const againBtn = document.getElementById("againBtn");
+      if (againBtn) {
+        againBtn.addEventListener("click", () => {
+          status.innerHTML = "";
+          currentStep = 1;
+          render();
+        });
+      }
+    } else {
+      status.innerHTML = `<div class="err">Noget gik galt: ${escapeHtml(data.error || "Ukendt fejl")}</div>`;
+    }
+  });
+
   render();
 
   function escapeHtml(str) {
