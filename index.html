@@ -71,7 +71,7 @@
 
     <div id="status"></div>
 
-    <form id="survey" method="POST">
+   <form id="survey" method="POST" target="hidden_iframe">
       <!-- Honeypot -->
       <div class="hidden">
         <label>Hvis du kan se dette felt, lad det være tomt</label>
@@ -383,7 +383,8 @@
         <button type="button" class="primary" id="nextBtn">Videre</button>
         <button type="submit" class="primary hidden" id="submitBtn">Send besvarelse</button>
       </div>
-    </form>
+    </form> 
+    <iframe name="hidden_iframe" class="hidden"></iframe>
   </div>
 
 <script>
