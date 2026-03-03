@@ -1,12 +1,507 @@
 <!doctype html>
 <html lang="da">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Test</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Spørgeskemaundersøgelse – Silkeborg Friskole (forår 2026)</title>
+  <style>
+    :root { --card-max: 980px; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; line-height: 1.45; }
+    .card { max-width: var(--card-max); margin: 0 auto; padding: 18px; border: 1px solid #ddd; border-radius: 12px; }
+    h1 { margin-top: 0; }
+    fieldset { border: 1px solid #e3e3e3; border-radius: 12px; padding: 14px; margin: 14px 0; }
+    legend { padding: 0 8px; font-weight: 700; }
+    label { display:block; font-weight: 600; margin-top: 10px; }
+    select, textarea, input[type="text"] { width:100%; padding: 10px; margin-top: 6px; font-size: 16px; }
+    textarea { min-height: 90px; }
+    .muted { color: #555; font-size: 14px; }
+    .small { font-size: 13px; color:#666; }
+    .hidden { display:none !important; }
+
+    .likert { display: grid; gap: 8px; margin-top: 8px; }
+    .likert label { font-weight: 500; margin-top: 0; display:flex; gap: 10px; align-items:center; }
+    .grid5 { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 720px) { .grid5 { grid-template-columns: 1fr; } }
+
+    .ok { padding: 10px; border: 1px solid #cfc; background: #f3fff3; border-radius: 10px; margin: 12px 0; }
+    .err { padding: 10px; border: 1px solid #fcc; background: #fff3f3; border-radius: 10px; margin: 12px 0; }
+
+    /* Wizard */
+    .topbar { display:flex; gap: 12px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+    .stepTitle { font-weight: 700; }
+    .progressWrap { width: 100%; margin: 10px 0 0; }
+    .progressTrack { height: 10px; border-radius: 999px; background: #eee; overflow:hidden; }
+    .progressBar { height: 100%; width: 0%; background: #111; transition: width 180ms ease; }
+    .stepsMeta { display:flex; justify-content:space-between; gap: 10px; margin-top: 8px; font-size: 13px; color:#666; }
+    .stepsMeta span.active { color:#111; font-weight: 700; }
+
+    .nav { display:flex; gap: 10px; margin-top: 14px; }
+    .nav button { padding: 12px 14px; font-size: 16px; border: 1px solid #ddd; border-radius: 10px; background: #fff; cursor:pointer; }
+    .nav button.primary { background:#111; color:#fff; border-color:#111; }
+    .nav button:disabled { opacity: .6; cursor:not-allowed; }
+    .nav .spacer { flex: 1; }
+
+    details { border: 1px solid #eee; border-radius: 10px; padding: 10px 12px; background: #fafafa; margin-top: 10px; }
+    details summary { cursor:pointer; font-weight: 700; }
+    .pill { display:inline-block; padding: 2px 10px; border:1px solid #ddd; border-radius: 999px; font-size: 12px; color:#444; }
+
+    /* Make invalid field visible and easy to find */
+    .hint { margin-top: 8px; font-size: 13px; color:#444; }
+  </style>
 </head>
 <body>
-  <h1>OK – HTML renderer</h1>
-  <p>Hvis du kan se dette, virker GitHub Pages korrekt.</p>
+  <div class="card">
+    <div class="topbar">
+      <div>
+        <h1 style="margin-bottom:6px;">Spørgeskemaundersøgelse – Silkeborg Friskole (forår 2026)</h1>
+        <div class="muted">Besvarelsen er anonym. <span class="pill">Ca. 5–8 min.</span></div>
+      </div>
+      <div class="stepTitle" id="stepTitle">Trin 1 af 4</div>
+    </div>
+
+    <div class="progressWrap">
+      <div class="progressTrack"><div class="progressBar" id="progressBar"></div></div>
+      <div class="stepsMeta" id="stepsMeta">
+        <span data-step="1" class="active">Intro</span>
+        <span data-step="2">Undervisning & samarbejde</span>
+        <span data-step="3">Rammer, IT & SFO</span>
+        <span data-step="4">Resten</span>
+      </div>
+    </div>
+
+    <div id="status"></div>
+
+    <form id="survey" method="POST">
+      <!-- Honeypot -->
+      <div class="hidden">
+        <label>Hvis du kan se dette felt, lad det være tomt</label>
+        <input type="text" name="hp" autocomplete="off" />
+      </div>
+
+      <!-- STEP 1 -->
+      <section class="step" data-step="1">
+        <fieldset>
+          <legend>Introduktion</legend>
+
+          <p>
+            Formålet er at indsamle jeres oplevelser og forslag, så vi kan prioritere forbedringer dér, hvor de gør størst forskel.
+            Du kan gå videre trin for trin — og du kan altid gå tilbage.
+          </p>
+
+          <details>
+            <summary>Læs den fulde introduktion</summary>
+            <div class="muted" style="margin-top:10px;">
+              <!-- Her kan du indsætte den lange introtekst fra PDF'en ordret, hvis du vil. -->
+              <p>
+                (Indsæt den lange tekst fra PDF’en her. Det er bedre UX at gemme den bag “Læs mere”, så folk ikke stopper før de starter.)
+              </p>
+              <p>
+                Husk: ét skema pr. barn. Hvis du har flere børn, kan du udfylde igen bagefter.
+              </p>
+            </div>
+          </details>
+
+          <p class="hint">
+            Når du trykker “Videre”, får du vist spørgsmålene. På hvert trin skal du udfylde det nødvendige, før du kan fortsætte.
+          </p>
+        </fieldset>
+      </section>
+
+      <!-- STEP 2 -->
+      <section class="step hidden" data-step="2">
+        <fieldset>
+          <legend>Oplysning om barnets klassetrin</legend>
+          <label for="klassetrin">Klassetrin</label>
+          <select id="klassetrin" name="klassetrin" required>
+            <option value="" selected disabled>Vælg…</option>
+            <option>Bhk</option>
+            <option>1.</option>
+            <option>2.</option>
+            <option>3.</option>
+            <option>4.</option>
+            <option>5.</option>
+            <option>6.</option>
+            <option>7.</option>
+            <option>8.</option>
+          </select>
+        </fieldset>
+
+        <fieldset>
+          <legend>Generel tilfredshed</legend>
+          <p class="muted">Vælg ét svar pr. spørgsmål. Du kan uddybe med kommentarer.</p>
+
+          <div class="q">
+            <label>Hvor tilfreds er du med kvaliteten af undervisningen på skolen?</label>
+            <div class="likert">
+              <label><input required type="radio" name="q1_kvalitet_undervisning" value="Meget utilfreds">Meget utilfreds</label>
+              <label><input type="radio" name="q1_kvalitet_undervisning" value="Utilfreds">Utilfreds</label>
+              <label><input type="radio" name="q1_kvalitet_undervisning" value="Hverken tilfreds eller utilfreds">Hverken tilfreds eller utilfreds</label>
+              <label><input type="radio" name="q1_kvalitet_undervisning" value="Tilfreds">Tilfreds</label>
+              <label><input type="radio" name="q1_kvalitet_undervisning" value="Meget tilfreds">Meget tilfreds</label>
+              <label><input type="radio" name="q1_kvalitet_undervisning" value="Ved ikke">Ved ikke</label>
+            </div>
+            <label class="small">Uddybende kommentarer</label>
+            <textarea name="q1_kommentar"></textarea>
+          </div>
+
+          <div class="q">
+            <label>Hvor tilfreds er du med dit barns faglige udbytte af undervisningen?</label>
+            <div class="likert">
+              <label><input required type="radio" name="q2_fagligt_udbytte" value="Meget utilfreds">Meget utilfreds</label>
+              <label><input type="radio" name="q2_fagligt_udbytte" value="Utilfreds">Utilfreds</label>
+              <label><input type="radio" name="q2_fagligt_udbytte" value="Hverken tilfreds eller utilfreds">Hverken tilfreds eller utilfreds</label>
+              <label><input type="radio" name="q2_fagligt_udbytte" value="Tilfreds">Tilfreds</label>
+              <label><input type="radio" name="q2_fagligt_udbytte" value="Meget tilfreds">Meget tilfreds</label>
+              <label><input type="radio" name="q2_fagligt_udbytte" value="Ved ikke">Ved ikke</label>
+            </div>
+            <label class="small">Uddybende kommentarer</label>
+            <textarea name="q2_kommentar"></textarea>
+          </div>
+
+          <div class="q">
+            <label>Hvor tilfreds er du med lærernes/pædagogernes arbejde med at udvikle dit barns evne til at indgå i sociale sammenhænge?</label>
+            <div class="likert">
+              <label><input required type="radio" name="q3_sociale_evner" value="Meget utilfreds">Meget utilfreds</label>
+              <label><input type="radio" name="q3_sociale_evner" value="Utilfreds">Utilfreds</label>
+              <label><input type="radio" name="q3_sociale_evner" value="Hverken tilfreds eller utilfreds">Hverken tilfreds eller utilfreds</label>
+              <label><input type="radio" name="q3_sociale_evner" value="Tilfreds">Tilfreds</label>
+              <label><input type="radio" name="q3_sociale_evner" value="Meget tilfreds">Meget tilfreds</label>
+              <label><input type="radio" name="q3_sociale_evner" value="Ved ikke">Ved ikke</label>
+            </div>
+            <label class="small">Uddybende kommentarer</label>
+            <textarea name="q3_kommentar"></textarea>
+          </div>
+
+          <div class="q">
+            <label>Hvor tilfreds er du med lærernes/pædagogernes arbejde i forhold til den sociale trivsel i dit barns klasse?</label>
+            <div class="likert">
+              <label><input required type="radio" name="q4_social_trivsel_klasse" value="Meget utilfreds">Meget utilfreds</label>
+              <label><input type="radio" name="q4_social_trivsel_klasse" value="Utilfreds">Utilfreds</label>
+              <label><input type="radio" name="q4_social_trivsel_klasse" value="Hverken tilfreds eller utilfreds">Hverken tilfreds eller utilfreds</label>
+              <label><input type="radio" name="q4_social_trivsel_klasse" value="Tilfreds">Tilfreds</label>
+              <label><input type="radio" name="q4_social_trivsel_klasse" value="Meget tilfreds">Meget tilfreds</label>
+              <label><input type="radio" name="q4_social_trivsel_klasse" value="Ved ikke">Ved ikke</label>
+            </div>
+            <label class="small">Uddybende kommentarer</label>
+            <textarea name="q4_kommentar"></textarea>
+          </div>
+
+          <div class="q">
+            <label>Hvor tilfreds er du med samarbejdet med skolen omkring dit barn?</label>
+            <div class="likert">
+              <label><input required type="radio" name="q5_samarbejde_om_barn" value="Meget utilfreds">Meget utilfreds</label>
+              <label><input type="radio" name="q5_samarbejde_om_barn" value="Utilfreds">Utilfreds</label>
+              <label><input type="radio" name="q5_samarbejde_om_barn" value="Hverken tilfreds eller utilfreds">Hverken tilfreds eller utilfreds</label>
+              <label><input type="radio" name="q5_samarbejde_om_barn" value="Tilfreds">Tilfreds</label>
+              <label><input type="radio" name="q5_samarbejde_om_barn" value="Meget tilfreds">Meget tilfreds</label>
+              <label><input type="radio" name="q5_samarbejde_om_barn" value="Ved ikke">Ved ikke</label>
+            </div>
+            <label class="small">Uddybende kommentarer</label>
+            <textarea name="q5_kommentar"></textarea>
+          </div>
+
+          <div class="q">
+            <label>Hvor tilfreds er du med informationsniveauet fra skole til hjem?</label>
+            <div class="likert">
+              <label><input required type="radio" name="q6_informationsniveau" value="Meget utilfreds">Meget utilfreds</label>
+              <label><input type="radio" name="q6_informationsniveau" value="Utilfreds">Utilfreds</label>
+              <label><input type="radio" name="q6_informationsniveau" value="Hverken tilfreds eller utilfreds">Hverken tilfreds eller utilfreds</label>
+              <label><input type="radio" name="q6_informationsniveau" value="Tilfreds">Tilfreds</label>
+              <label><input type="radio" name="q6_informationsniveau" value="Meget tilfreds">Meget tilfreds</label>
+              <label><input type="radio" name="q6_informationsniveau" value="Ved ikke">Ved ikke</label>
+            </div>
+            <label class="small">Uddybende kommentarer</label>
+            <textarea name="q6_kommentar"></textarea>
+          </div>
+        </fieldset>
+      </section>
+
+      <!-- STEP 3 -->
+      <section class="step hidden" data-step="3">
+        <fieldset>
+          <legend>Faciliteter</legend>
+          <p class="muted">Vurder hver facilitet.</p>
+
+          <div class="grid5">
+            <div>
+              <label>Klasselokalerne</label>
+              <select name="fac_klasselokaler" required>
+                <option value="" selected disabled>Vælg…</option>
+                <option>Meget utilfreds</option><option>Utilfreds</option>
+                <option>Hverken tilfreds eller utilfreds</option>
+                <option>Tilfreds</option><option>Meget tilfreds</option>
+                <option>Ved ikke</option>
+              </select>
+            </div>
+            <div>
+              <label>Fællesarealerne</label>
+              <select name="fac_faellesarealer" required>
+                <option value="" selected disabled>Vælg…</option>
+                <option>Meget utilfreds</option><option>Utilfreds</option>
+                <option>Hverken tilfreds eller utilfreds</option>
+                <option>Tilfreds</option><option>Meget tilfreds</option>
+                <option>Ved ikke</option>
+              </select>
+            </div>
+            <div>
+              <label>IT-udstyret</label>
+              <select name="fac_it" required>
+                <option value="" selected disabled>Vælg…</option>
+                <option>Meget utilfreds</option><option>Utilfreds</option>
+                <option>Hverken tilfreds eller utilfreds</option>
+                <option>Tilfreds</option><option>Meget tilfreds</option>
+                <option>Ved ikke</option>
+              </select>
+            </div>
+            <div>
+              <label>Toiletforholdene</label>
+              <select name="fac_toiletter" required>
+                <option value="" selected disabled>Vælg…</option>
+                <option>Meget utilfreds</option><option>Utilfreds</option>
+                <option>Hverken tilfreds eller utilfreds</option>
+                <option>Tilfreds</option><option>Meget tilfreds</option>
+                <option>Ved ikke</option>
+              </select>
+            </div>
+            <div>
+              <label>Udeområdet</label>
+              <select name="fac_udeomraade" required>
+                <option value="" selected disabled>Vælg…</option>
+                <option>Meget utilfreds</option><option>Utilfreds</option>
+                <option>Hverken tilfreds eller utilfreds</option>
+                <option>Tilfreds</option><option>Meget tilfreds</option>
+                <option>Ved ikke</option>
+              </select>
+            </div>
+          </div>
+
+          <label class="small">Uddybende kommentarer</label>
+          <textarea name="fac_kommentar"></textarea>
+        </fieldset>
+
+        <fieldset>
+          <legend>SFO</legend>
+          <label>Hvor tilfreds er du med skolens SFO-tilbud?</label>
+          <div class="likert">
+            <label><input required type="radio" name="sfo_tilfredshed" value="Meget utilfreds">Meget utilfreds</label>
+            <label><input type="radio" name="sfo_tilfredshed" value="Utilfreds">Utilfreds</label>
+            <label><input type="radio" name="sfo_tilfredshed" value="Hverken tilfreds eller utilfreds">Hverken tilfreds eller utilfreds</label>
+            <label><input type="radio" name="sfo_tilfredshed" value="Tilfreds">Tilfreds</label>
+            <label><input type="radio" name="sfo_tilfredshed" value="Meget tilfreds">Meget tilfreds</label>
+            <label><input type="radio" name="sfo_tilfredshed" value="Ved ikke">Ved ikke</label>
+            <label><input type="radio" name="sfo_tilfredshed" value="Ikke relevant">Ikke relevant</label>
+          </div>
+          <label class="small">Uddybende kommentarer</label>
+          <textarea name="sfo_kommentar"></textarea>
+        </fieldset>
+      </section>
+
+      <!-- STEP 4 -->
+      <section class="step hidden" data-step="4">
+        <fieldset>
+          <legend>Enig / uenig</legend>
+          <p class="muted">Hvor enig eller uenig er du i udsagnene?</p>
+
+          <div class="q">
+            <label>De kristne værdier afspejles i hverdagen på Silkeborg Friskole.</label>
+            <div class="likert">
+              <label><input required type="radio" name="a1_kristne_vaerdier" value="Meget uenig">Meget uenig</label>
+              <label><input type="radio" name="a1_kristne_vaerdier" value="Uenig">Uenig</label>
+              <label><input type="radio" name="a1_kristne_vaerdier" value="Hverken enig eller uenig">Hverken enig eller uenig</label>
+              <label><input type="radio" name="a1_kristne_vaerdier" value="Enig">Enig</label>
+              <label><input type="radio" name="a1_kristne_vaerdier" value="Meget enig">Meget enig</label>
+              <label><input type="radio" name="a1_kristne_vaerdier" value="Ved ikke">Ved ikke</label>
+            </div>
+            <label class="small">Uddybende kommentarer</label>
+            <textarea name="a1_kommentar"></textarea>
+          </div>
+
+          <div class="q">
+            <label>Der er en høj grad af faglighed på Silkeborg Friskole.</label>
+            <div class="likert">
+              <label><input required type="radio" name="a2_hoej_faglighed" value="Meget uenig">Meget uenig</label>
+              <label><input type="radio" name="a2_hoej_faglighed" value="Uenig">Uenig</label>
+              <label><input type="radio" name="a2_hoej_faglighed" value="Hverken enig eller uenig">Hverken enig eller uenig</label>
+              <label><input type="radio" name="a2_hoej_faglighed" value="Enig">Enig</label>
+              <label><input type="radio" name="a2_hoej_faglighed" value="Meget enig">Meget enig</label>
+              <label><input type="radio" name="a2_hoej_faglighed" value="Ved ikke">Ved ikke</label>
+            </div>
+            <label class="small">Uddybende kommentarer</label>
+            <textarea name="a2_kommentar"></textarea>
+          </div>
+
+          <div class="q">
+            <label>På Silkeborg Friskole bliver der investeret i det enkelte barns trivsel.</label>
+            <div class="likert">
+              <label><input required type="radio" name="a3_investering_trivsel" value="Meget uenig">Meget uenig</label>
+              <label><input type="radio" name="a3_investering_trivsel" value="Uenig">Uenig</label>
+              <label><input type="radio" name="a3_investering_trivsel" value="Hverken enig eller uenig">Hverken enig eller uenig</label>
+              <label><input type="radio" name="a3_investering_trivsel" value="Enig">Enig</label>
+              <label><input type="radio" name="a3_investering_trivsel" value="Meget enig">Meget enig</label>
+              <label><input type="radio" name="a3_investering_trivsel" value="Ved ikke">Ved ikke</label>
+            </div>
+            <label class="small">Uddybende kommentarer</label>
+            <textarea name="a3_kommentar"></textarea>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Åbne spørgsmål</legend>
+
+          <label>1. Hvad synes du er særligt kendetegnende for Silkeborg Friskole?</label>
+          <textarea name="o1_kendetegnende" required></textarea>
+
+          <label>2. Hvad synes du er skolens største styrke?</label>
+          <textarea name="o2_stoerste_styrke" required></textarea>
+
+          <label>3. Hvilket område, synes du, har mest brug for forbedring?</label>
+          <textarea name="o3_mest_brug_for_forbedring" required></textarea>
+
+          <label>4a. Hvilket spørgsmål ville du gerne have haft, at vi havde stillet?</label>
+          <textarea name="o4a_spoergsmaal_de_manglede" required></textarea>
+
+          <label>4b. Hvad ville du have svaret på det spørgsmål?</label>
+          <textarea name="o4b_svar_paa_det_spoergsmaal" required></textarea>
+        </fieldset>
+
+        <fieldset>
+          <legend>Fokusgruppe</legend>
+          <label>Kunne du/I have lyst til at deltage i et fokusgruppeinterview?</label>
+          <div class="likert">
+            <label><input required type="radio" name="fokusgruppe" value="Ønsker at deltage">Jeg/vi ønsker at deltage i et fokusgruppeinterview</label>
+            <label><input type="radio" name="fokusgruppe" value="Ønsker ikke at deltage">Jeg/vi ønsker ikke at deltage i et fokusgruppeinterview</label>
+          </div>
+          <p class="muted small">
+            Hvis man ønsker at deltage, henvises der til at kontakte skolen direkte (det håndteres ikke via dette anonyme skema).
+          </p>
+        </fieldset>
+      </section>
+
+      <div class="nav">
+        <button type="button" id="backBtn">Tilbage</button>
+        <div class="spacer"></div>
+        <button type="button" class="primary" id="nextBtn">Videre</button>
+        <button type="submit" class="primary hidden" id="submitBtn">Send besvarelse</button>
+      </div>
+    </form>
+  </div>
+
+<script>
+  // Din Apps Script URL
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2NWfSDdarj0YVp3y5S6tsAzlU07Sj7iV7nF6NnN00lNXBfC5Mq6-1c14i8taWHZ9L/exec";
+
+  const form = document.getElementById("survey");
+  const status = document.getElementById("status");
+
+  const backBtn = document.getElementById("backBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const submitBtn = document.getElementById("submitBtn");
+
+  const progressBar = document.getElementById("progressBar");
+  const stepTitle = document.getElementById("stepTitle");
+  const stepsMeta = document.getElementById("stepsMeta");
+
+  const steps = Array.from(document.querySelectorAll(".step"));
+  const totalSteps = steps.length;
+  let currentStep = 1;
+
+  form.action = APPS_SCRIPT_URL;
+
+  // Vis status fra redirect (hvis du har Apps Script redirect tilbage til ?status=ok/err)
+  (function showStatusFromUrl() {
+    const url = new URL(window.location.href);
+    const st = url.searchParams.get("status");
+    if (!st) return;
+
+    if (st === "ok") {
+      status.innerHTML = `<div class="ok">Tak! Din besvarelse er sendt. Du kan nu lukke siden — eller udfylde for et barn mere.</div>`;
+      form.reset();
+    } else {
+      const msg = url.searchParams.get("msg") || "Ukendt fejl";
+      status.innerHTML = `<div class="err">Noget gik galt: ${escapeHtml(msg)}</div>`;
+    }
+
+    window.history.replaceState({}, "", url.origin + url.pathname);
+  })();
+
+  function render() {
+    steps.forEach(s => s.classList.add("hidden"));
+    const active = steps.find(s => Number(s.dataset.step) === currentStep);
+    if (active) active.classList.remove("hidden");
+
+    const pct = ((currentStep - 1) / (totalSteps - 1)) * 100;
+    progressBar.style.width = pct + "%";
+
+    stepTitle.textContent = `Trin ${currentStep} af ${totalSteps}`;
+
+    Array.from(stepsMeta.querySelectorAll("span")).forEach(sp => {
+      sp.classList.toggle("active", Number(sp.dataset.step) === currentStep);
+    });
+
+    backBtn.disabled = currentStep === 1;
+
+    // sidste step: vis submit i stedet for next
+    const isLast = currentStep === totalSteps;
+    nextBtn.classList.toggle("hidden", isLast);
+    submitBtn.classList.toggle("hidden", !isLast);
+
+    // Scroll top for overskuelighed
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function validateCurrentStep() {
+    const active = steps.find(s => Number(s.dataset.step) === currentStep);
+    if (!active) return true;
+
+    // checkValidity virker pr. element (inkl. required radio/select/textarea)
+    const inputs = Array.from(active.querySelectorAll("input, select, textarea"));
+    for (const el of inputs) {
+      // skip disabled/hidden inputs (honeypot ligger udenfor step)
+      if (el.disabled) continue;
+      if (!el.checkValidity()) {
+        el.reportValidity();
+        // scroll til feltet
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        return false;
+      }
+    }
+    return true;
+  }
+
+  nextBtn.addEventListener("click", () => {
+    status.innerHTML = "";
+    if (!validateCurrentStep()) return;
+    if (currentStep < totalSteps) currentStep += 1;
+    render();
+  });
+
+  backBtn.addEventListener("click", () => {
+    status.innerHTML = "";
+    if (currentStep > 1) currentStep -= 1;
+    render();
+  });
+
+  form.addEventListener("submit", (e) => {
+    // Valider sidste step (og i praksis hele formen)
+    status.innerHTML = "";
+    const ok = validateCurrentStep();
+    if (!ok) {
+      e.preventDefault();
+      return;
+    }
+    // UX: disable knap så man ikke spammer
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Sender…";
+  });
+
+  // Start rendering
+  render();
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (m) => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    }[m]));
+  }
+</script>
 </body>
 </html>
