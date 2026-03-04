@@ -384,12 +384,12 @@
         <button type="submit" class="primary hidden" id="submitBtn">Send besvarelse</button>
       </div>
     </form> 
-    <iframe name="hidden_iframe" class="hidden"></iframe>
+   <iframe id="hidden_iframe" name="hidden_iframe" class="hidden"></iframe>
   </div>
 
 <script>
   const APPS_SCRIPT_URL =
-    "https://script.google.com/macros/s/AKfycbznH0-_Twope-ls8zuAFO-srXTn2jmWy_XrCyOP7r_MOzSMSOBo28BHRZWskKwgboy5/exec";
+    "https://docs.google.com/spreadsheets/d/1TRshgJ88ADay3KoDjMMnXSus54iD78oB8vr2MrurIaY/edit?gid=0#gid=0";
 
   const form = document.getElementById("survey");
   const status = document.getElementById("status");
@@ -477,39 +477,33 @@
   });
 
   // ✅ Lyt efter postMessage fra Apps Script (iframe)
-  window.addEventListener("message", (event) => {
-    // Stram gerne origin senere; i første omgang accepterer vi hvis payload ligner vores
-    const data = event.data || {};
-    if (typeof data !== "object" || data.ok === undefined) return;
+window.addEventListener("message", (event) => {
+  const data = event.data || {};
+  if (typeof data !== "object" || data.ok === undefined) return;
 
-    // Re-enable submit uanset hvad
-    submitBtn.disabled = false;
-    submitBtn.textContent = "Send besvarelse";
+  // lås op igen uanset hvad
+  submitBtn.disabled = false;
+  submitBtn.textContent = "Send besvarelse";
 
-    if (data.ok) {
-      status.innerHTML = `
-        <div class="ok">
-          Tak! Din besvarelse er sendt.<br><br>
-          <button id="againBtn" type="button" class="primary">Besvar for et barn mere</button>
-        </div>
-      `;
+  if (data.ok) {
+    status.innerHTML = `
+      <div class="ok">
+        Tak! Din besvarelse er sendt.<br><br>
+        <button type="button" id="againBtn">Besvar for et barn mere</button>
+      </div>
+    `;
+    form.reset();
+    currentStep = 1;
+    render();
 
-      form.reset();
-      currentStep = 1;
-      render();
-
-      const againBtn = document.getElementById("againBtn");
-      if (againBtn) {
-        againBtn.addEventListener("click", () => {
-          status.innerHTML = "";
-          currentStep = 1;
-          render();
-        });
-      }
-    } else {
-      status.innerHTML = `<div class="err">Noget gik galt: ${escapeHtml(data.error || "Ukendt fejl")}</div>`;
-    }
-  });
+    document.getElementById("againBtn").addEventListener("click", () => {
+      status.innerHTML = "";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  } else {
+    status.innerHTML = `<div class="err">Noget gik galt: ${escapeHtml(data.error || "Ukendt fejl")}</div>`;
+  }
+});
 
   render();
 
