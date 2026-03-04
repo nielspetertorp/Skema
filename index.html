@@ -478,10 +478,15 @@
 
   // ✅ Lyt efter postMessage fra Apps Script (iframe)
 window.addEventListener("message", (event) => {
-  const data = event.data || {};
-  if (typeof data !== "object" || data.ok === undefined) return;
+  let data = event.data;
 
-  // lås op igen uanset hvad
+  // nogle browsere/frames sender som string
+  if (typeof data === "string") {
+    try { data = JSON.parse(data); } catch (e) { return; }
+  }
+
+  if (!data || typeof data !== "object" || data.ok === undefined) return;
+
   submitBtn.disabled = false;
   submitBtn.textContent = "Send besvarelse";
 
@@ -504,7 +509,6 @@ window.addEventListener("message", (event) => {
     status.innerHTML = `<div class="err">Noget gik galt: ${escapeHtml(data.error || "Ukendt fejl")}</div>`;
   }
 });
-
   render();
 
   function escapeHtml(str) {
